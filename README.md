@@ -21,6 +21,7 @@ This project is developed and tested with the following versions:
 2. Navigate to the project directory: `cd fortuna-service`
 3. Install dependencies: `npm install`
 
+
 ## Usage
 
 1. On one terminal, run the webpack build to watch for any code changes and build when there is a code change: `npm run build:local`
