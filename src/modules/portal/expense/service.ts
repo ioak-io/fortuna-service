@@ -12,8 +12,7 @@ export const getById = async (req: any, res: any) => {
     res.status(200);
     res.send(data);
     res.end();
-};
-
+}
 
 export const post = async (req: any, res: any) => {
     const data = await ExpenseHelper.createExpense(req.realm, req.body, req.user.user_id);
