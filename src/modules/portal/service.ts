@@ -46,8 +46,8 @@ export const getModules = async (req: any, res: any) => {
 };
 
 export const getModuleOperations = async (req: any, res: any) => {
-  console.log(req.params);
-  const data = { ...schema.MODULE_EXPENSE_SCHEMA };
+  console.log(req.user, req.realm);
+  const data = await Helper.getModuleOperations(req.realm, req.params.name);
   res.status(200);
   res.send(data);
   res.end();

@@ -7,6 +7,30 @@ import * as Helper from "./helper";
 import { isEmptyOrSpaces } from "../../lib/Utils";
 import { format, parse } from "date-fns";
 
+export const createExpense = async (
+  space: string,
+  data: any,
+  userId: string
+) => {
+  const model = getCollection(space, expenseCollection, expenseSchema);
+  let res: any = {};
+
+  res = await model.create({
+    ...data,
+    billDate: new Date(
+      parse(data.billDate, "yyyy-MM-dd", new Date()).getTime() +
+      6 * 60 * 60 * 1000
+    ),
+    mode: "Manual",
+    createdBy: userId
+  });
+
+  return {
+    ...res._doc,
+    billDate: format(res._doc.billDate, "yyyy-MM-dd"),
+  };
+};
+
 export const updateExpense = async (
   space: string,
   data: any,
@@ -21,7 +45,7 @@ export const updateExpense = async (
         ...data,
         billDate: new Date(
           parse(data.billDate, "yyyy-MM-dd", new Date()).getTime() +
-            6 * 60 * 60 * 1000
+          6 * 60 * 60 * 1000
         ),
       },
       { new: true, upsert: true }
@@ -31,7 +55,7 @@ export const updateExpense = async (
       ...data,
       billDate: new Date(
         parse(data.billDate, "yyyy-MM-dd", new Date()).getTime() +
-          6 * 60 * 60 * 1000
+        6 * 60 * 60 * 1000
       ),
       mode: "Manual",
     });
@@ -43,10 +67,36 @@ export const updateExpense = async (
   };
 };
 
+export const updateExpenseById = async (
+  space: string,
+  id: string,
+  data: any,
+  userId: string
+) => {
+  const model = getCollection(space, expenseCollection, expenseSchema);
+  let res: any = {};
+  res = await model.findByIdAndUpdate(
+    id,
+    {
+      ...data,
+      billDate: new Date(
+        parse(data.billDate, "yyyy-MM-dd", new Date()).getTime() +
+        6 * 60 * 60 * 1000
+      ),
+    },
+    { new: true, upsert: true }
+  );
+
+  return {
+    ...res._doc,
+    billDate: format(res._doc.billDate, "yyyy-MM-dd"),
+  };
+};
+
 export const getExpense = async (space: string) => {
   const model = getCollection(space, expenseCollection, expenseSchema);
 
-  const response = await model.find();
+  const response = await model.find().sort({ billDate: "desc" });
   return response.map((record: any) => {
     return {
       ...record._doc,
@@ -58,6 +108,24 @@ export const getExpense = async (space: string) => {
       billId: record.billId,
     };
   });
+};
+
+export const getExpenseById = async (space: string, id: string) => {
+  const model = getCollection(space, expenseCollection, expenseSchema);
+
+  const response = await model.findById(id);
+  if (!response) {
+    return null;
+  }
+  return {
+    ...response._doc,
+    _id: response._id,
+    billDate: format(response.billDate, "yyyy-MM-dd"),
+    category: response.category,
+    description: response.description,
+    amount: response.amount,
+    billId: response.billId,
+  };
 };
 
 export const searchExpense = async (space: string, searchCriteria: any) => {
@@ -317,6 +385,11 @@ export const updateExpenseInBulk = async (space: string, data: any) => {
   return await model.insertMany(data);
 };
 
+export const deleteById = async (space: string, id: string) => {
+  const model = getCollection(space, expenseCollection, expenseSchema);
+  return await model.deleteMany({_id: id});
+};
+
 export const deleteByScheduleId = async (space: string, scheduleId: string) => {
   const model = getCollection(space, expenseCollection, expenseSchema);
   return await model.deleteMany({ scheduleId });
@@ -466,9 +539,8 @@ export const fixDuplicate = async (space: string, payload: any) => {
   const deleteIdList: string[] = [];
 
   duplicateRecords.forEach((item: any) => {
-    const key = `${item.billDate}--${
-      item.category
-    }--${item.description.toLowerCase()}--${item.amount}`;
+    const key = `${item.billDate}--${item.category
+      }--${item.description.toLowerCase()}--${item.amount}`;
     if (retainIdList.includes(key)) {
       deleteIdList.push(item._id);
     } else {

@@ -96,9 +96,9 @@ export const readAuthorizationPortal = async (
     const token = req.headers["authorization"];
     if (token) {
       const data: any = await decodeAppToken(token);
-      // console.log(data.claims);
+      console.log(data.claims);
       req.user = data.claims.user;
-      req.realm = data.claims.realm;
+      req.realm = data.claims.space;
     }
     next();
   } catch (err) {

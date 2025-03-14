@@ -6,6 +6,7 @@ import { add, differenceInSeconds } from "date-fns";
 import { getCollection } from "../../lib/dbutils";
 import { portalaccessCollection, portalaccessSchema } from "./model";
 import { isEmptyOrSpaces } from "../../lib/Utils";
+import { getSchemaExpense } from "./expense/schema";
 
 export const createPortalSession = async (
   space: string,
@@ -79,3 +80,13 @@ export const createPortalToken = async (apiKey: string) => {
     return null;
   }
 };
+
+export const getModuleOperations = async (realm: string, moduleName: string) => {
+  switch (moduleName) {
+    case "expense":
+      return await getSchemaExpense(realm);
+  
+    default:
+      return {};
+  }
+}
